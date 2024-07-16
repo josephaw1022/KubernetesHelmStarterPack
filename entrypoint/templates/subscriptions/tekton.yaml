@@ -5,7 +5,7 @@ metadata:
   name: my-tektoncd-operator
   namespace: operators
   annotations:
-    "helm.sh/hook": post-install
+    "helm.sh/hook": post-install, post-upgrade
     "helm.sh/hook-weight": "1"
 spec:
   channel: alpha

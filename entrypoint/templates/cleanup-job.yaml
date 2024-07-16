@@ -27,9 +27,9 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: cleanup-olm-job-{{ randAlphaNum 5 | lower }}
-  namespace: {{ .Release.Namespace }}
+  namespace: default
   annotations:
-    "helm.sh/hook": pre-delete
+    "helm.sh/hook": post-delete
     "helm.sh/hook-delete-policy": hook-succeeded, hook-failed
 spec:
   template:
