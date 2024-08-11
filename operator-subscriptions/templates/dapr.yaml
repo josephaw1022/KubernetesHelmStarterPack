@@ -1,3 +1,4 @@
+{{- if .Values.features.dapr }}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,3 +10,4 @@ spec:
   name: dapr-kubernetes-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}

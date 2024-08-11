@@ -1,3 +1,4 @@
+{{- if .Values.features.kafka }}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,3 +10,4 @@ spec:
   name: strimzi-kafka-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}

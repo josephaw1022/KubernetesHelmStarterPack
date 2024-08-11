@@ -1,3 +1,4 @@
+{{- if .Values.features.kiali }}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,3 +10,5 @@ spec:
   name: kiali
   source: operatorhubio-catalog
   sourceNamespace: olm
+
+{{- end }}

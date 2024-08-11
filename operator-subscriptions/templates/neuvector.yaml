@@ -1,3 +1,4 @@
+{{- if .Values.features.neuvector }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -23,3 +24,4 @@ spec:
   name: neuvector-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}

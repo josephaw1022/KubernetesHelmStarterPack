@@ -1,3 +1,4 @@
+{{- if .Values.features.kubevirt }}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,3 +10,4 @@ spec:
   name: community-kubevirt-hyperconverged
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}

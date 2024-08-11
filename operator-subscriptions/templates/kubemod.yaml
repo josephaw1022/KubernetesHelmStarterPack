@@ -1,3 +1,4 @@
+{{- if .Values.features.kubemod }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -23,3 +24,5 @@ spec:
   name: kubemod
   source: operatorhubio-catalog
   sourceNamespace: olm
+
+{{- end }}

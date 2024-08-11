@@ -1,3 +1,4 @@
+{{- if .Values.features.minio }}
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -9,3 +10,4 @@ spec:
   name: minio-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}

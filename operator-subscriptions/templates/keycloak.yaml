@@ -1,3 +1,4 @@
+{{- if .Values.features.keycloak }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -23,3 +24,4 @@ spec:
   name: keycloak-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+{{- end }}
