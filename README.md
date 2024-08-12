@@ -15,25 +15,49 @@
    chmod +x k8s
    ```
 
-2. To start the kind cluster, install OLM, and deploy the operator subscriptions, run:
+2. To create a Kubernetes cluster with kind and install the Operator Lifecycle Manager (OLM), run:
 
    ```bash
-   ./k8s up
+   ./k8s create-kind-cluster
+   ./k8s install-olm
    ```
 
-   After running this command, `kubectl` should automatically switch its context to the kind cluster. You can verify that everything is working by running:
+   After running these commands, `kubectl` should automatically switch its context to the kind cluster. You can verify that everything is working by running:
 
    ```bash
    kubectl get nodes
    ```
 
-3. To tear down the kind cluster, run:
+3. **Modify the `values.yaml` file**: Before installing or upgrading the operator subscriptions Helm chart, you need to modify the `values.yaml` file located within the `operator-subscriptions` Helm chart directory. Set the features for the operators you want to enable to `true`. For example:
 
-   ```bash
-   ./k8s down
+   ```yaml
+   features:
+     postgresql: true
+     cert-manager: true
+     # Set other features to true as needed
    ```
 
-4. Run k9s to manage and view your Kubernetes cluster:
+4. To install or upgrade the operator subscriptions Helm chart, execute:
+
+   ```bash
+   ./k8s install-operator-subs
+   ```
+
+   This command installs or upgrades specific operators within your Kubernetes cluster, preparing the environment to manage resources through the installed CRDs.
+
+5. To uninstall the operator subscriptions Helm chart, run:
+
+   ```bash
+   ./k8s uninstall-operator-subs
+   ```
+
+6. To destroy the Kubernetes cluster with kind, execute:
+
+   ```bash
+   ./k8s destroy-kind-cluster
+   ```
+
+7. Run k9s to manage and view your Kubernetes cluster:
 
    ```bash
    k9s
@@ -41,7 +65,7 @@
 
 ## Operator Subscriptions Helm Chart
 
-The Operator Subscriptions Helm chart contains a collection of subscription YAML files. Each file subscribes to a specific operator from the OperatorHub, enabling the deployment of various operators into your Kubernetes cluster. Here is an example of a subscription YAML file:
+The Operator Subscriptions Helm chart contains a collection of subscription YAML files. Each file subscribes to a specific operator from the OperatorHub, enabling the deployment of various operators into your Kubernetes cluster. Modify the `values.yaml` file to enable the subscriptions you need before deploying the chart. Here is an example of a subscription YAML file:
 
 ```yaml
 ---
@@ -58,7 +82,6 @@ spec:
 ```
 
 With the PostgreSQL subscription, for example, you are now able to use Custom Resource Definitions (CRDs) provided by the PostgreSQL operator in other Helm charts or Kubernetes manifests. This enables you to manage PostgreSQL clusters and related resources declaratively. Here are some examples of CRDs that can be used:
-
 
 #### PostgresCluster
 

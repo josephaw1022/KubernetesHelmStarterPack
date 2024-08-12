@@ -1,37 +1,60 @@
 #!/bin/bash
 
 # Script to manage Kubernetes cluster with kind
-# Usage: k8s up|down
+# Usage: k8s create-kind-cluster|destroy-kind-cluster|install-operator-subs|uninstall-operator-subs|install-olm
 
-# Function to create the Kubernetes cluster
-cluster_up() {
+# Function to create the Kubernetes cluster with kind
+create_kind_cluster() {
+    echo "Creating Kubernetes cluster with kind..."
+    kind create cluster --name k8s-quickstart
 
+    echo "Kubernetes cluster created successfully!"
+}
+
+# Function to install Operator Lifecycle Manager
+install_olm() {
     echo "Installing Operator Lifecycle Manager..."
     curl -sL https://github.com/operator-framework/operator-lifecycle-manager/releases/download/v0.28.0/install.sh | bash -s v0.28.0
 
-    echo "Installing or upgrading Helm chart for operator-subscriptions..."
-    helm upgrade operator-subscriptions operator-subscriptions --install --namespace operator-subscriptions --create-namespace
-
-    echo "Kubernetes cluster setup completed!"
+    echo "Operator Lifecycle Manager installed successfully!"
 }
 
-# Function to delete the Kubernetes cluster
-cluster_down() {
-    echo "Deleting Kubernetes cluster with kind..."
+# Function to install or upgrade the operator subscriptions Helm chart
+install_operator_subs() {
+    echo "Installing or upgrading the operator-subscriptions Helm chart..."
+    helm upgrade --install operator-subscriptions ./operator-subscriptions --namespace operator-subscriptions --create-namespace
+
+    echo "Operator-subscriptions Helm chart installed or upgraded successfully!"
+}
+
+# Function to uninstall the operator subscriptions Helm chart
+uninstall_operator_subs() {
+    echo "Uninstalling the operator-subscriptions Helm chart..."
+    helm uninstall operator-subscriptions --namespace operator-subscriptions
+
+    echo "Operator-subscriptions Helm chart uninstalled successfully!"
+}
+
+# Function to destroy the Kubernetes cluster with kind
+destroy_kind_cluster() {
+    echo "Destroying Kubernetes cluster with kind..."
     kind delete cluster --name k8s-quickstart
 
-    echo "Kind cluster deleted successfully!"
+    echo "Kind cluster destroyed successfully!"
 }
 
 # Function to display help message
 display_help() {
-    echo "Usage: $0 up|down"
+    echo "Usage: $0 create-kind-cluster|destroy-kind-cluster|install-operator-subs|uninstall-operator-subs|install-olm"
     echo "Manage Kubernetes cluster with kind."
     echo
     echo "Options:"
-    echo "  up      Start the Kubernetes cluster"
-    echo "  down    Stop the Kubernetes cluster"
-    echo "  -h, --help  Display this help message"
+    echo "  create-kind-cluster      Create a Kubernetes cluster with kind"
+    echo "  destroy-kind-cluster     Destroy the Kubernetes cluster with kind"
+    echo "  install-operator-subs    Install or upgrade Helm chart for operator subscriptions"
+    echo "  uninstall-operator-subs  Uninstall Helm chart for operator subscriptions"
+    echo "  install-olm              Install Operator Lifecycle Manager"
+    echo "  -h, --help               Display this help message"
 }
 
 # Check for argument
@@ -43,11 +66,20 @@ fi
 
 # Execute the appropriate function based on the argument
 case "$1" in
-    up)
-        cluster_up
+    create-kind-cluster)
+        create_kind_cluster
         ;;
-    down)
-        cluster_down
+    install-operator-subs)
+        install_operator_subs
+        ;;
+    uninstall-operator-subs)
+        uninstall_operator_subs
+        ;;
+    install-olm)
+        install_olm
+        ;;
+    destroy-kind-cluster)
+        destroy_kind_cluster
         ;;
     -h|--help)
         display_help
