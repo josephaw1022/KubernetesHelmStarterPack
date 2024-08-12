@@ -33,6 +33,8 @@
           selinux: true
           tls-san:
             - "{{ tls_san_ip }}"
+          debug: true
+          write-kubeconfig-mode: "0644"
 
     - name: Start RKE2 server service
       systemd:

@@ -35,6 +35,8 @@
           tls-san:
             - "{{ ansible_host }}"
           server: https://{{ hostvars['master1']['internal_ip'] }}:9345
+          debug: true
+          write-kubeconfig-mode: "0644"
 
     - name: Start RKE2 server service
       systemd:
