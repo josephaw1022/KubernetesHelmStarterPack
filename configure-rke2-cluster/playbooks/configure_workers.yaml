@@ -1,0 +1,44 @@
+---
+- name: Configure worker nodes
+  hosts: workers
+  become: true
+  vars_files:
+    - ../vars.yaml
+  tasks:
+
+    - name: Disable Firewall
+      ansible.builtin.systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+    - name: Install RKE2 agent if not installed
+      shell: |
+        if ! command -v rke2-agent >/dev/null 2>&1; then
+          curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+        fi
+      register: install_result
+      changed_when: install_result.stdout != ""
+
+    - name: Create RKE2 configuration directory
+      file:
+        path: /etc/rancher/rke2
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configure RKE2 agent
+      copy:
+        dest: /etc/rancher/rke2/config.yaml
+        content: |
+          token: {{ rke2_token }}
+          selinux: true
+          server: https://{{ hostvars['master1']['internal_ip'] }}:9345
+        mode: '0644'
+
+    - name: Enable and start RKE2 agent service
+      systemd:
+        name: rke2-agent
+        enabled: true
+        state: started

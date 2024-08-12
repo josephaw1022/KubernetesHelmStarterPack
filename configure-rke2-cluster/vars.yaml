@@ -1,0 +1,8 @@
+---
+# Variables for RKE2 setup
+rke2_token: "a4d6B9cE1fGh2IjL"  # Replace with your actual token
+tls_san_ip: "192.168.122.149"  # Replace with the actual Nginx load balancer IP
+
+# Variables for SSH key setup
+ansible_ssh_user: jwhiteaker  # Replace with the username used for SSH login
+public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"  # Path to your public key

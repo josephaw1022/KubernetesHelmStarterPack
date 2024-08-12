@@ -1,0 +1,40 @@
+---
+- name: Configure initial master node
+  hosts: initial_master
+  become: true
+  vars_files:
+    - ../vars.yaml
+  tasks:
+    - name: Disable Firewall
+      ansible.builtin.systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+    - name: Install RKE2 server
+      shell: |
+        curl -sfL https://get.rke2.io | sh -
+
+    - name: Enable RKE2 server service
+      systemd:
+        name: rke2-server
+        enabled: true
+
+    - name: Create RKE2 configuration directory
+      file:
+        path: /etc/rancher/rke2
+        state: directory
+
+    - name: Configure RKE2 server
+      copy:
+        dest: /etc/rancher/rke2/config.yaml
+        content: |
+          token: {{ rke2_token }}
+          selinux: true
+          tls-san:
+            - "{{ tls_san_ip }}"
+
+    - name: Start RKE2 server service
+      systemd:
+        name: rke2-server
+        state: started
