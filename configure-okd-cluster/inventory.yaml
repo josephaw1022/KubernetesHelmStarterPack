@@ -1,0 +1,6 @@
+all:
+  hosts:
+    kvm_host:
+      ansible_host: 192.168.1.210 # IP address of the KVM host
+      ansible_user: root
+

@@ -1,0 +1,36 @@
+vlan_id: 100
+
+common_vm_config:
+  vcpu: 4
+  iso_path: "/iso_images/fedora-coreos.iso"
+  network_bridge: "virbr0"
+
+vm_definitions:
+  - name: okd4-bootstrap
+    ram: 12288
+    storage: 120
+    ip: 192.168.1.200
+  - name: okd4-control-plane-1
+    ram: 8192
+    storage: 120
+    ip: 192.168.1.201
+  - name: okd4-control-plane-2
+    ram: 8192
+    storage: 120
+    ip: 192.168.1.202
+  - name: okd4-control-plane-3
+    ram: 8192
+    storage: 120
+    ip: 192.168.1.203
+  - name: okd4-compute-1
+    ram: 8192
+    storage: 120
+    ip: 192.168.1.204
+  - name: okd4-compute-2
+    ram: 8192
+    storage: 120
+    ip: 192.168.1.205
+  - name: okd4-services
+    ram: 4096
+    storage: 100
+    ip: 192.168.1.210

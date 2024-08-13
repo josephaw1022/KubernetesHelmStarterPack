@@ -1,0 +1,56 @@
+---
+- name: Configure and Deploy OKD VMs
+  hosts: kvm_host
+  vars_files:
+    - okd_vm_vars.yml
+
+  tasks:
+    - name: Create VLAN for OKD Cluster
+      community.network.vlan:
+        vlan_id: "{{ vlan_id }}"
+        name: "okd-cluster-vlan"
+        state: present
+        bridge: "{{ common_vm_config.network_bridge }}"
+
+    - name: Create VM storage
+      loop: "{{ vm_definitions }}"
+      community.libvirt.libvirt_volume:
+        name: "{{ item.name }}.qcow2"
+        capacity: "{{ item.storage }}"
+        format: qcow2
+        pool: default
+        state: present
+
+    - name: Create VMs with VLAN
+      loop: "{{ vm_definitions }}"
+      community.libvirt.libvirt_domain:
+        xml: |
+          <domain type='kvm'>
+            <name>{{ item.name }}</name>
+            <memory unit='KiB'>{{ item.ram * 1024 }}</memory>
+            <vcpu>{{ common_vm_config.vcpu }}</vcpu>
+            <os>
+              <type>hvm</type>
+              <boot dev='cdrom'/>
+              <boot dev='hd'/>
+            </os>
+            <devices>
+              <disk type='file' device='disk'>
+                <driver type='qcow2'/>
+                <source file='/var/lib/libvirt/images/{{ item.name }}.qcow2'/>
+                <target dev='vda' bus='virtio'/>
+              </disk>
+              <disk type='file' device='cdrom'>
+                <source file='{{ common_vm_config.iso_path }}'/>
+                <target dev='hdc' bus='ide'/>
+                <readonly/>
+              </disk>
+              <interface type='bridge'>
+                <source bridge='{{ common_vm_config.network_bridge }}.{{ vlan_id }}'/>
+                <model type='virtio'/>
+              </interface>
+            </devices>
+          </domain>
+        autostart: yes
+        state: running
+        uri: "qemu:///system"
