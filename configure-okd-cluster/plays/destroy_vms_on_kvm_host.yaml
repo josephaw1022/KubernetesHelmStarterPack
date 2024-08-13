@@ -2,7 +2,7 @@
 - name: Destroy OKD VMs and Clean Up Resources
   hosts: kvm_host
   vars_files:
-    - okd_vm_vars.yml
+    - ../vars.yaml
 
   tasks:
     - name: Stop and Remove VMs

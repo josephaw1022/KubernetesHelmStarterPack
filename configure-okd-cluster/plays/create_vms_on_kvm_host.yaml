@@ -2,7 +2,7 @@
 - name: Configure and Deploy OKD VMs
   hosts: kvm_host
   vars_files:
-    - okd_vm_vars.yml
+    - ../vars.yaml
 
   tasks:
     - name: Create VLAN for OKD Cluster
