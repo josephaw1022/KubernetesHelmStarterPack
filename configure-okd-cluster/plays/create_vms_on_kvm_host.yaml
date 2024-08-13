@@ -6,6 +6,50 @@
     - ../vars.yaml
 
   tasks:
+    - name: Check if Fedora CoreOS ISO exists
+      stat:
+        path: "{{ common_vm_config.iso_path }}"
+      register: iso_stat
+
+    - name: Download Fedora CoreOS ISO if not present
+      get_url:
+        url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/40.20240709.3.1/x86_64/fedora-coreos-40.20240709.3.1-live.x86_64.iso"
+        dest: "{{ common_vm_config.iso_path }}"
+        mode: '0644'
+      when: not iso_stat.stat.exists
+
+    - name: Download Fedora GPG key
+      get_url:
+        url: "https://fedoraproject.org/fedora.gpg"
+        dest: "/tmp/fedora.gpg"
+        mode: '0644'
+      when: not iso_stat.stat.exists
+
+    - name: Verify ISO signature
+      shell: >
+        gpgv --keyring /tmp/fedora.gpg
+        {{ common_vm_config.iso_path }}.sig
+        {{ common_vm_config.iso_path }}
+      register: gpg_check
+      changed_when: false
+      failed_when: gpg_check.rc != 0
+      when: not iso_stat.stat.exists
+
+    - name: Download checksum file
+      get_url:
+        url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/40.20240709.3.1/x86_64/fedora-coreos-40.20240709.3.1-live.x86_64.iso-CHECKSUM"
+        dest: "{{ common_vm_config.iso_path }}-CHECKSUM"
+        mode: '0644'
+      when: not iso_stat.stat.exists
+
+    - name: Verify ISO checksum
+      shell: >
+        sha256sum -c {{ common_vm_config.iso_path }}-CHECKSUM
+      register: checksum_check
+      changed_when: false
+      failed_when: checksum_check.rc != 0
+      when: not iso_stat.stat.exists
+
     - name: Create VLAN for OKD Cluster
       command: >
         nmcli connection add type vlan con-name okd-cluster-vlan
