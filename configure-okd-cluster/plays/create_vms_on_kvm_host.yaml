@@ -6,6 +6,12 @@
     - ../vars.yaml
 
   tasks:
+    - name: Ensure ISO directory exists
+      ansible.builtin.file:
+        path: "{{ common_vm_config.iso_path | dirname }}"
+        state: directory
+        mode: '0755'
+
     - name: Check if Fedora CoreOS ISO exists
       stat:
         path: "{{ common_vm_config.iso_path }}"
@@ -15,6 +21,13 @@
       get_url:
         url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/40.20240709.3.1/x86_64/fedora-coreos-40.20240709.3.1-live.x86_64.iso"
         dest: "{{ common_vm_config.iso_path }}"
+        mode: '0644'
+      when: not iso_stat.stat.exists
+
+    - name: Download ISO signature file if not present
+      get_url:
+        url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/40.20240709.3.1/x86_64/fedora-coreos-40.20240709.3.1-live.x86_64.iso.sig"
+        dest: "{{ common_vm_config.iso_path }}.sig"
         mode: '0644'
       when: not iso_stat.stat.exists
 
@@ -70,7 +83,12 @@
           --os-variant fedora-coreos-stable \
           --graphics none \
           --noautoconsole \
-          --wait -1
+          --noreboot
+          --import
       args:
         executable: /bin/bash
       register: output
+
+    - name: Output VM creation result
+      debug:
+        var: output
