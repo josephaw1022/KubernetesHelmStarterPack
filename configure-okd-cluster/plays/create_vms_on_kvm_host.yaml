@@ -1,56 +1,32 @@
 ---
 - name: Configure and Deploy OKD VMs
   hosts: kvm_host
+  become: true
   vars_files:
     - ../vars.yaml
 
   tasks:
     - name: Create VLAN for OKD Cluster
-      community.network.vlan:
-        vlan_id: "{{ vlan_id }}"
-        name: "okd-cluster-vlan"
-        state: present
-        bridge: "{{ common_vm_config.network_bridge }}"
+      command: >
+        nmcli connection add type vlan con-name okd-cluster-vlan
+        dev {{ common_vm_config.network_bridge }} id {{ vlan_id }}
+      ignore_errors: yes
 
-    - name: Create VM storage
+    - name: Create and Configure VMs
       loop: "{{ vm_definitions }}"
-      community.libvirt.libvirt_volume:
-        name: "{{ item.name }}.qcow2"
-        capacity: "{{ item.storage }}"
-        format: qcow2
-        pool: default
-        state: present
-
-    - name: Create VMs with VLAN
-      loop: "{{ vm_definitions }}"
-      community.libvirt.libvirt_domain:
-        xml: |
-          <domain type='kvm'>
-            <name>{{ item.name }}</name>
-            <memory unit='KiB'>{{ item.ram * 1024 }}</memory>
-            <vcpu>{{ common_vm_config.vcpu }}</vcpu>
-            <os>
-              <type>hvm</type>
-              <boot dev='cdrom'/>
-              <boot dev='hd'/>
-            </os>
-            <devices>
-              <disk type='file' device='disk'>
-                <driver type='qcow2'/>
-                <source file='/var/lib/libvirt/images/{{ item.name }}.qcow2'/>
-                <target dev='vda' bus='virtio'/>
-              </disk>
-              <disk type='file' device='cdrom'>
-                <source file='{{ common_vm_config.iso_path }}'/>
-                <target dev='hdc' bus='ide'/>
-                <readonly/>
-              </disk>
-              <interface type='bridge'>
-                <source bridge='{{ common_vm_config.network_bridge }}.{{ vlan_id }}'/>
-                <model type='virtio'/>
-              </interface>
-            </devices>
-          </domain>
-        autostart: yes
-        state: running
-        uri: "qemu:///system"
+      shell: |
+        virt-install \
+          --name {{ item.name }} \
+          --memory {{ item.ram }} \
+          --vcpus {{ common_vm_config.vcpu }} \
+          --disk path=/var/lib/libvirt/images/{{ item.name }}.qcow2,size={{ item.storage }},format=qcow2 \
+          --cdrom {{ common_vm_config.iso_path }} \
+          --network bridge={{ common_vm_config.network_bridge }},model=virtio \
+          --os-type linux \
+          --os-variant fedora-coreos-stable \
+          --graphics none \
+          --noautoconsole \
+          --wait -1
+      args:
+        executable: /bin/bash
+      register: output

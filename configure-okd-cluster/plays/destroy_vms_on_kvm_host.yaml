@@ -1,27 +1,20 @@
 ---
 - name: Destroy OKD VMs and Clean Up Resources
   hosts: kvm_host
+  become: true
   vars_files:
     - ../vars.yaml
 
   tasks:
-    - name: Stop and Remove VMs
+    - name: Stop and undefine VMs
       loop: "{{ vm_definitions }}"
-      community.libvirt.libvirt_domain:
-        name: "{{ item.name }}"
-        state: absent
-        uri: "qemu:///system"
+      shell: |
+        virsh destroy {{ item.name }} || true
+        virsh undefine {{ item.name }} --remove-all-storage || true
+      args:
+        executable: /bin/bash
 
-    - name: Remove VM storage
-      loop: "{{ vm_definitions }}"
-      community.libvirt.libvirt_volume:
-        name: "{{ item.name }}.qcow2"
-        pool: default
-        state: absent
-
-    - name: Remove VLAN for OKD Cluster
-      community.network.vlan:
-        vlan_id: "{{ vlan_id }}"
-        name: "okd-cluster-vlan"
-        state: absent
-        bridge: "{{ common_vm_config.network_bridge }}"
+    - name: Remove VLAN using nmcli
+      command: >
+        nmcli connection delete okd-cluster-vlan
+      ignore_errors: yes
