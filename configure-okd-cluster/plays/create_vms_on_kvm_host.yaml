@@ -29,14 +29,12 @@
         url: "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/40.20240709.3.1/x86_64/fedora-coreos-40.20240709.3.1-live.x86_64.iso.sig"
         dest: "{{ common_vm_config.iso_path }}.sig"
         mode: '0644'
-      when: not iso_stat.stat.exists
 
     - name: Download Fedora GPG key
       get_url:
         url: "https://fedoraproject.org/fedora.gpg"
         dest: "/tmp/fedora.gpg"
         mode: '0644'
-      when: not iso_stat.stat.exists
 
     - name: Verify ISO signature
       shell: >
@@ -81,9 +79,8 @@
           --network bridge={{ common_vm_config.network_bridge }},model=virtio \
           --os-type linux \
           --os-variant fedora-coreos-stable \
-          --graphics none \
           --noautoconsole \
-          --noreboot
+          --noreboot \
           --import
       args:
         executable: /bin/bash

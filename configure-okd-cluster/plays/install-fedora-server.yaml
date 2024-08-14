@@ -1,0 +1,57 @@
+---
+- name: Prepare and Verify Fedora Server ISO
+  hosts: kvm_host
+  become: true
+
+  tasks:
+    - name: Ensure ISO directory exists
+      ansible.builtin.file:
+        path: /iso_images
+        state: directory
+        mode: '0755'
+
+    - name: Check if Fedora Server ISO exists
+      ansible.builtin.stat:
+        path: "/iso_images/fedora-server.iso"
+      register: iso_stat
+
+    - name: Download Fedora Server ISO if not present
+      ansible.builtin.get_url:
+        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/x86_64/iso/Fedora-Server-dvd-x86_64-40-1.14.iso"
+        dest: "/iso_images/fedora-server.iso"
+        mode: '0644'
+      when: not iso_stat.stat.exists
+
+    - name: Download checksum file
+      ansible.builtin.get_url:
+        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/x86_64/iso/Fedora-Server-40-1.14-x86_64-CHECKSUM"
+        dest: "/tmp/Fedora-Server-40-1.14-x86_64-CHECKSUM"
+        mode: '0644'
+
+    - name: Download Fedora GPG key
+      ansible.builtin.get_url:
+        url: "https://fedoraproject.org/fedora.gpg"
+        dest: "/tmp/fedora.gpg"
+        mode: '0644'
+
+    - name: Modify checksum file to use the new ISO filename
+      ansible.builtin.lineinfile:
+        path: "/tmp/Fedora-Server-40-1.14-x86_64-CHECKSUM"
+        regexp: 'Fedora-Server-dvd-x86_64-40-1.14.iso'
+        line: 'fedora-server.iso'
+        backrefs: yes
+
+    - name: Verify the checksum file is valid
+      ansible.builtin.shell:
+        cmd: "gpgv --keyring /tmp/fedora.gpg /tmp/Fedora-Server-40-1.14-x86_64-CHECKSUM"
+      register: gpg_check
+      failed_when: gpg_check.rc != 0
+      changed_when: false
+
+    - name: Verify the checksum matches
+      ansible.builtin.shell:
+        cmd: "sha256sum -c /tmp/Fedora-Server-40-1.14-x86_64-CHECKSUM"
+        chdir: "/iso_images"
+      register: checksum_check
+      failed_when: checksum_check.rc != 0
+      changed_when: false
